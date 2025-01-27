@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt');
 const Properties = require('../model/Poroperty');
 
 // Register a new property
-const registerProperty = async (req, res) => {  
-    const { title, description, price, location, total_capacity, is_available, image, property_type } = req.body;
+const registerProperty = async (req, res) => {
+    const { title, description, owner_id, price, location, total_capacity, is_available, image, property_type } = req.body;
 
     // Validate input
     if (!title || !description || !price || !location || !total_capacity || !image || !property_type) {
@@ -12,7 +12,7 @@ const registerProperty = async (req, res) => {
     }
 
     try {
-        const newProperty = await Properties.create({ title, description, price, location, total_capacity, is_available, image, property_type });
+        const newProperty = await Properties.create({ title, description, owner_id, price, location, total_capacity, is_available, image, property_type });
         res.status(201).json({ message: 'Property registered successfully' });
     } catch (error) {
         console.error(error);

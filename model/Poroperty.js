@@ -18,6 +18,11 @@ const Property = sequelize.define('Properties', {
         notNull: true,
 
     },
+    owner_id: { 
+        type: DataTypes.INTEGER,
+        notNull: true,
+    },
+    
     price: {
         type: DataTypes.INTEGER,
         notNull: true,
