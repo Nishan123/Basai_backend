@@ -1,23 +1,11 @@
 const { Sequelize } = require("sequelize");
 
-const sequelize = new Sequelize('basai', 'postgres', 'lamakhu',{
-
+const sequelize = new Sequelize('basai', 'postgres', 'lamakhu', {
     host: 'localhost',
     dialect: 'postgres',
     port: 5432,
-    logging: false,
+    logging: false, // Disable SQL query logging
 });
 
-async function testConnection() {
-    try{
-        await sequelize.authenticate();
-        console.log('DB connection successful............................')
-    }
-    catch(error){
-        console.error('Unable to connect to the database...............', error)
-
-}    
-}
-testConnection()
-
+// Remove the test connection and sync
 module.exports = sequelize;

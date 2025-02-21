@@ -50,6 +50,9 @@ const Property = sequelize.define('Properties', {
         type: DataTypes.STRING,
         notNull: true,
     },
+    facilities: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+    },
 
 
 })
