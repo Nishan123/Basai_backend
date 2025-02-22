@@ -37,6 +37,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Serve uploaded files - add this before your routes
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Add these headers for image serving
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+});
+
+// Add CORS headers specifically for images
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
+
 // Update the static file serving to use the root directory
 app.use('/', express.static(path.join(__dirname)));
 

@@ -26,12 +26,8 @@ const registerProperty = async (req, res) => {
             });
         }
 
-        // Process image paths
-        const images = req.files.map(file => {
-            const relativePath = file.path.replace(/\\/g, '/');
-            console.log('Processing image path:', relativePath);
-            return relativePath;
-        });
+        // Update image path handling - store only the filename
+        const images = req.files.map(file => file.filename);
 
         // Create property with validated data
         const propertyData = {
@@ -55,7 +51,7 @@ const registerProperty = async (req, res) => {
         res.status(201).json({
             message: 'Property registered successfully',
             property: newProperty,
-            imageUrls: images.map(img => `http://localhost:5000/${img}`)
+            imageUrls: images.map(img => `http://localhost:5000/uploads/${img}`)
         });
 
     } catch (error) {
@@ -72,9 +68,21 @@ const registerProperty = async (req, res) => {
 const viewAllProperty = async (req, res) => {
     try {
         const properties = await Properties.findAll();
-        res.status(200).json(properties);
+        
+        // Transform the image paths to full URLs
+        const propertiesWithUrls = properties.map(property => {
+            const propertyData = property.toJSON();
+            if (propertyData.image && Array.isArray(propertyData.image)) {
+                propertyData.image = propertyData.image.map(img => 
+                    `http://localhost:5000/uploads/${img}`
+                );
+            }
+            return propertyData;
+        });
+
+        res.status(200).json(propertiesWithUrls);
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching properties:', error);
         res.status(500).json({ error: 'Failed to fetch properties' });
     }
 }
