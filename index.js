@@ -3,9 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const sequelize = require('./database/db');
-const userRoute = require('./routes/userRoute')
-const propertyRoute = require('./routes/propertyRoute')
+const userRoute = require('./routes/userRoute');
+const propertyRoute = require('./routes/propertyRoute');
+const bookingRoute = require('./routes/bookingRoute'); // Add this
 const path = require('path');
+const multer = require('multer'); // Add this if not already present
 
 //Creating a Server
 const app = express();
@@ -66,6 +68,7 @@ app.get('/test', (req, res) => {
 
 app.use('/users', userRoute);
 app.use('/properties', propertyRoute);
+app.use('/api/bookings', bookingRoute); // Add this
 
 // Add this after your routes and before the general error handler
 app.use((err, req, res, next) => {
@@ -90,17 +93,27 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-// Sync database - add this before app.listen
-sequelize.sync({ alter: true }) // Be careful with this in production!
-  .then(() => {
-    console.log('Database synced');
+// Update the server startup
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Database connection established.');
+    
+    // Replace the force sync with alter sync
+    await sequelize.sync({ alter: true });
+    console.log('Database synchronized.');
+    
+    const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
-        console.log(`Server Running on PORT ${PORT}`);
-        console.log(`Test the server at http://localhost:${PORT}/test`);
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Test the server at http://localhost:${PORT}/test`);
     });
-  })
-  .catch(err => {
-    console.error('Failed to sync database:', err);
-  });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 
