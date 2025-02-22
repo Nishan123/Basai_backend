@@ -1,26 +1,72 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const Properties = require('../model/Poroperty');
+const path = require('path');
 
 // Register a new property
 const registerProperty = async (req, res) => {
-    const { title, description, owner_id, price, location, total_capacity, is_available, image, property_type } = req.body;
-
-    // Validate input
-    if (!title || !description || !price || !location || !total_capacity || !image || !property_type) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
-
     try {
-        const newProperty = await Properties.create({ title, description, owner_id, price, location, total_capacity, is_available, image, property_type });
-        res.status(201).json({ message: 'Property registered successfully' });
+        console.log('Starting property registration...');
+        
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'No images uploaded' });
+        }
+
+        // Log the received data
+        console.log('Files:', req.files);
+        console.log('Body:', req.body);
+
+        // Validate required fields
+        const { title, description, location, price, property_type } = req.body;
+        
+        if (!title || !description || !location || !price) {
+            return res.status(400).json({ 
+                error: 'Missing required fields',
+                details: { title, description, location, price }
+            });
+        }
+
+        // Process image paths
+        const images = req.files.map(file => {
+            const relativePath = file.path.replace(/\\/g, '/');
+            console.log('Processing image path:', relativePath);
+            return relativePath;
+        });
+
+        // Create property with validated data
+        const propertyData = {
+            title,
+            description,
+            owner_id: 1,
+            price: parseFloat(price),
+            location,
+            total_capacity: 1,
+            is_available: true,
+            image: images,
+            property_type,
+            facilities: req.body.facilities ? JSON.parse(req.body.facilities) : []
+        };
+
+        console.log('Attempting to create property with data:', propertyData);
+
+        const newProperty = await Properties.create(propertyData);
+        console.log('Property created successfully:', newProperty.id);
+
+        res.status(201).json({
+            message: 'Property registered successfully',
+            property: newProperty,
+            imageUrls: images.map(img => `http://localhost:5000/${img}`)
+        });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to register property' });
+        console.error('Property registration error:', error);
+        return res.status(500).json({ 
+            error: 'Failed to register property',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 }
-
-
 
 //view all property
 const viewAllProperty = async (req, res) => {

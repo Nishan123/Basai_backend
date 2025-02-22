@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const sequelize = require('./database/db');
 const userRoute = require('./routes/userRoute')
 const propertyRoute = require('./routes/propertyRoute')
+const path = require('path');
 
 //Creating a Server
 const app = express();
@@ -33,6 +34,12 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Serve uploaded files - add this before your routes
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Update the static file serving to use the root directory
+app.use('/', express.static(path.join(__dirname)));
+
 // Basic health check route
 app.get('/', (req, res) => {
     res.json({ status: 'Server is running' });
@@ -46,16 +53,40 @@ app.get('/test', (req, res) => {
 app.use('/users', userRoute);
 app.use('/properties', propertyRoute);
 
+// Add this after your routes and before the general error handler
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    
+    if (err instanceof multer.MulterError) {
+        return res.status(400).json({
+            error: 'File upload error',
+            details: err.message
+        });
+    }
+    
+    res.status(500).json({ 
+        error: 'Internal server error', 
+        details: err.message 
+    });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
     res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-// Start server without database sync
-app.listen(PORT, () => {
-    console.log(`Server Running on PORT ${PORT}`);
-    console.log(`Test the server at http://localhost:${PORT}/test`);
-});
+// Sync database - add this before app.listen
+sequelize.sync({ alter: true }) // Be careful with this in production!
+  .then(() => {
+    console.log('Database synced');
+    app.listen(PORT, () => {
+        console.log(`Server Running on PORT ${PORT}`);
+        console.log(`Test the server at http://localhost:${PORT}/test`);
+    });
+  })
+  .catch(err => {
+    console.error('Failed to sync database:', err);
+  });
 
 

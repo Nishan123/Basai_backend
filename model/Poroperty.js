@@ -43,7 +43,9 @@ const Property = sequelize.define('Properties', {
     },
 
     image: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
+        type: DataTypes.ARRAY(DataTypes.TEXT), // Changed from STRING to TEXT
+        defaultValue: [],
+        allowNull: true
     },
     
     property_type: {
@@ -51,9 +53,10 @@ const Property = sequelize.define('Properties', {
         notNull: true,
     },
     facilities: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
+        type: DataTypes.JSON, // Changed from ARRAY to JSON for better compatibility
+        defaultValue: [],
+        allowNull: true
     },
-
 
 })
 
