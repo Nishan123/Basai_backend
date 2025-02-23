@@ -74,11 +74,17 @@ app.get('/test', (req, res) => {
 });
 
 // Routes
-app.use('/users', userRoute); // Make sure this matches the frontend URL
-
 app.use('/users', userRoute);
 app.use('/properties', propertyRoute);
 app.use('/api/bookings', bookingRoute); // Add this
+
+// Add 404 handler before error handling middleware
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.url} not found`
+    });
+});
 
 // Add this after your routes and before the general error handler
 app.use((err, req, res, next) => {
@@ -109,12 +115,8 @@ const startServer = async () => {
         await sequelize.authenticate();
         console.log('Database connection established.');
         
-        // First drop the existing tables if they exist
-        await sequelize.query('DROP TABLE IF EXISTS "Users" CASCADE;');
-        console.log('Dropped existing tables');
-        
-        // Then sync with force: true
-        await sequelize.sync({ force: true });
+        // Sync without dropping tables or forcing changes
+        await sequelize.sync({ alter: false });
         console.log('Database synchronized.');
         
         app.listen(PORT, () => {
