@@ -105,23 +105,29 @@ app.use((err, req, res, next) => {
 
 // Update the server startup
 const startServer = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('Database connection established.');
-    
-    // Replace the force sync with alter sync
-    await sequelize.sync({ alter: true });
-    console.log('Database synchronized.');
-    
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-      console.log(`Test the server at http://localhost:${PORT}/test`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
+    try {
+        await sequelize.authenticate();
+        console.log('Database connection established.');
+        
+        // First drop the existing tables if they exist
+        await sequelize.query('DROP TABLE IF EXISTS "Users" CASCADE;');
+        console.log('Dropped existing tables');
+        
+        // Then sync with force: true
+        await sequelize.sync({ force: true });
+        console.log('Database synchronized.');
+        
+        app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', {
+            name: error.name,
+            message: error.message,
+            detail: error.parent?.detail
+        });
+        process.exit(1);
+    }
 };
 
 startServer();

@@ -6,6 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 console.log('Setting up user routes'); // Debug log
 
 router.post('/login', loginUser);
+router.post('/signup', registerUser);  // Add this line
 router.post('/register', registerUser);
 router.get('/profile', authMiddleware, (req, res, next) => {
     console.log('Profile route hit, user:', req.user); // Debug log

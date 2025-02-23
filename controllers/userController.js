@@ -4,6 +4,10 @@ const bcrypt = require('bcrypt');
 
 // Register a new user
 const registerUser = async (req, res) => {
+    console.log('Register request received:', {
+        body: req.body,
+        headers: req.headers
+    });
     const { firstName, lastName, email, password, confirmPassword } = req.body;
     
     try {
@@ -55,7 +59,12 @@ const registerUser = async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         
-        console.log('Attempting to create user with email:', email);
+        console.log('Creating user with data:', { 
+            firstName, 
+            lastName, 
+            email,
+            // Don't log the password
+        });
         
         const newUser = await User.create({ 
             firstName,
@@ -66,7 +75,9 @@ const registerUser = async (req, res) => {
 
         console.log('User created successfully:', newUser.id);
         
+        // Return more detailed response
         res.status(201).json({ 
+            success: true,
             message: 'User registered successfully',
             user: {
                 id: newUser.id,
@@ -76,21 +87,36 @@ const registerUser = async (req, res) => {
             }
         });
     } catch (error) {
-        // Enhanced error logging
-        console.error('Registration error:', {
+        console.error('Detailed error:', {
             name: error.name,
             message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            stack: error.stack,
+            body: req.body
         });
         
-        // More specific error messages
+        // Send appropriate error response
+        if (error.name === 'SequelizeValidationError') {
+            return res.status(400).json({ 
+                success: false,
+                error: 'Validation failed',
+                details: error.errors.map(e => ({
+                    field: e.path,
+                    message: e.message
+                }))
+            });
+        }
+        
         if (error.name === 'SequelizeUniqueConstraintError') {
-            return res.status(409).json({ error: 'An account with this email already exists' });
+            return res.status(409).json({
+                success: false,
+                error: 'An account with this email already exists'
+            });
         }
         
         res.status(500).json({ 
+            success: false,
             error: 'Registration failed. Please try again later.',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            message: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
@@ -206,18 +232,31 @@ const updateUser = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
     try {
+        console.log('Fetching profile for user:', req.user.id);
         const user = await User.findByPk(req.user.id, {
             attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt'],
         });
 
         if (!user) {
+            console.log('User not found:', req.user.id);
             return res.status(404).json({ error: 'User not found' });
         }
 
-        res.json(user);
+        console.log('Profile fetched successfully');
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                createdAt: user.createdAt
+            }
+        });
     } catch (error) {
         console.error('Profile fetch error:', error);
         res.status(500).json({ 
+            success: false,
             error: 'Failed to fetch profile data' 
         });
     }

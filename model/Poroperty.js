@@ -11,35 +11,35 @@ const Property = sequelize.define('Properties', {
     },
     title: {
         type: DataTypes.STRING,
-        notNull: true,
+        allowNull: false,
     },
     description: {
         type: DataTypes.STRING,
-        notNull: true,
-
+        allowNull: false,
     },
     owner_id: { 
-        type: DataTypes.INTEGER,
-        notNull: true,
+        type: DataTypes.STRING, // Changed to STRING temporarily
+        allowNull: false,
     },
     
     price: {
         type: DataTypes.INTEGER,
-        notNull: true,
+        allowNull: false,
     },
 
     location: {
         type: DataTypes.STRING,
-        notNull: true,
+        allowNull: false,
     },
 
     total_capacity: {
         type: DataTypes.INTEGER,
-        notNull: true,
+        allowNull: false,
 
     },
     is_available: {
         type: DataTypes.BOOLEAN,
+        defaultValue: true,
     },
 
     image: {
@@ -50,11 +50,11 @@ const Property = sequelize.define('Properties', {
     
     property_type: {
         type: DataTypes.STRING,
-        notNull: true,
+        allowNull: false,
     },
     facilities: {
         type: DataTypes.JSON, // Changed from ARRAY to JSON for better compatibility
-        defaultValue: [],
+        defaultValue: {},
         allowNull: true
     },
 
