@@ -6,7 +6,8 @@ const propertyController = require('../controllers/propertyController');
 const upload = require('../middleware/uploadMiddleware');
 const authMiddleware = require('../middleware/authMiddleware');
 
-router.post('/registerProperty', upload.array('images', 5), propertyController.registerProperty);
+// Add authMiddleware to the registerProperty route
+router.post('/registerProperty', authMiddleware, upload.array('images', 5), propertyController.registerProperty);
 router.get('/viewAllProperty', propertyController.viewAllProperty);
 router.get('/my-properties', authMiddleware, propertyController.viewUserProperties);
 

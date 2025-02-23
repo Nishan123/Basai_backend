@@ -12,6 +12,12 @@ const registerProperty = async (req, res) => {
             return res.status(400).json({ error: 'No images uploaded' });
         }
 
+        // Get user ID from authenticated request
+        const userId = req.user.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
         // Log the received data
         console.log('Files:', req.files);
         console.log('Body:', req.body);
@@ -33,7 +39,7 @@ const registerProperty = async (req, res) => {
         const propertyData = {
             title,
             description,
-            owner_id: 1,
+            owner_id: userId, // Use the authenticated user's ID
             price: parseFloat(price),
             location,
             total_capacity: 1,
