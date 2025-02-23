@@ -9,6 +9,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Add authMiddleware to the registerProperty route
 router.post('/registerProperty', authMiddleware, upload.array('images', 5), propertyController.registerProperty);
 router.get('/viewAllProperty', propertyController.viewAllProperty);
-router.get('/my-properties', authMiddleware, propertyController.viewUserProperties);
+router.delete('/deleteProperty/:id', authMiddleware, propertyController.deleteProperty);
 
 module.exports = router;
