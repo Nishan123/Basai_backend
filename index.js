@@ -33,6 +33,13 @@ app.use((req, res, next) => {
     next();
 });
 
+// Debug middleware
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log('Headers:', req.headers);
+    next();
+});
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -65,6 +72,9 @@ app.get('/', (req, res) => {
 app.get('/test', (req, res) => {
     res.json({ message: 'Backend server is running' });
 });
+
+// Routes
+app.use('/users', userRoute); // Make sure this matches the frontend URL
 
 app.use('/users', userRoute);
 app.use('/properties', propertyRoute);

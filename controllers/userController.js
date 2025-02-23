@@ -204,4 +204,75 @@ const updateUser = async (req, res) => {
     }
 }
 
-module.exports = { loginUser, registerUser, getUser, updateUser }
+const getUserProfile = async (req, res) => {
+    try {
+        const user = await User.findByPk(req.user.id, {
+            attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt'],
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error('Profile fetch error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch profile data' 
+        });
+    }
+};
+
+const updateProfile = async (req, res) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const { firstName, lastName, oldPassword, newPassword } = req.body;
+
+        // Update name fields
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+
+        // Handle password change if provided
+        if (oldPassword && newPassword) {
+            const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+            if (!isPasswordValid) {
+                return res.status(400).json({ error: 'Current password is incorrect' });
+            }
+
+            // Validate new password
+            if (newPassword.length < 6) {
+                return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+            }
+
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+
+        await user.save();
+
+        res.json({
+            message: 'Profile updated successfully',
+            user: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email
+            }
+        });
+    } catch (error) {
+        console.error('Profile update error:', error);
+        res.status(500).json({ error: 'Failed to update profile' });
+    }
+};
+
+module.exports = { 
+    loginUser, 
+    registerUser, 
+    getUser, 
+    updateUser,
+    getUserProfile,
+    updateProfile
+};

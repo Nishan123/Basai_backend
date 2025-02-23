@@ -87,4 +87,33 @@ const viewAllProperty = async (req, res) => {
     }
 }
 
-module.exports = { registerProperty, viewAllProperty };
+const viewUserProperties = async (req, res) => {
+    try {
+        const properties = await Properties.findAll({
+            where: {
+                owner_id: req.user.id
+            }
+        });
+        
+        const propertiesWithUrls = properties.map(property => {
+            const propertyData = property.toJSON();
+            if (propertyData.image && Array.isArray(propertyData.image)) {
+                propertyData.image = propertyData.image.map(img => 
+                    `http://localhost:5000/uploads/${img}`
+                );
+            }
+            return propertyData;
+        });
+
+        res.status(200).json(propertiesWithUrls);
+    } catch (error) {
+        console.error('Error fetching user properties:', error);
+        res.status(500).json({ error: 'Failed to fetch user properties' });
+    }
+};
+
+module.exports = { 
+    registerProperty, 
+    viewAllProperty, 
+    viewUserProperties 
+};
