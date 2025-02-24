@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { bookNow, cancelBooking } = require('../controllers/bookingController');
+const { bookNow, cancelBooking, getAllBookings } = require('../controllers/bookingController');
+const Booking = require('../model/Booking');
 
 // Test endpoint
 router.get('/test', (req, res) => {
@@ -24,5 +25,21 @@ router.get('/', (req, res) => {
 
 router.post('/book', bookNow);
 router.delete('/cancel/:id', cancelBooking);
+
+// Add this new route
+router.get('/user-bookings/:userId', async (req, res) => {
+  try {
+    const bookings = await Booking.findAll({
+      where: { guest_id: req.params.userId },
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Replace the previous all-bookings route with this
+router.get('/all-bookings', getAllBookings);
 
 module.exports = router;

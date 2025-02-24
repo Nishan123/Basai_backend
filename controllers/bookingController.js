@@ -101,4 +101,29 @@ const cancelBooking = async (req, res) => {
     }
 };
 
-module.exports = { bookNow, cancelBooking };
+// Add this new controller method
+const getAllBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.findAll({
+            order: [['createdAt', 'DESC']],
+            attributes: {
+                exclude: ['updatedAt'] // Optionally exclude unnecessary fields
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            count: bookings.length,
+            bookings: bookings
+        });
+    } catch (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch bookings',
+            error: error.message
+        });
+    }
+};
+
+module.exports = { bookNow, cancelBooking, getAllBookings };
