@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 5000
 // More detailed CORS configuration
 app.use(cors({
     origin: '*',  // During development, accept all origins
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Added PATCH
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
     preflightContinue: false,
@@ -119,8 +119,19 @@ const startServer = async () => {
         await sequelize.sync({ alter: false });
         console.log('Database synchronized.');
         
-        app.listen(PORT, () => {
+        // Add error handling for port in use
+        const server = app.listen(PORT, () => {
             console.log(`Server running on http://localhost:${PORT}`);
+        }).on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                console.log(`Port ${PORT} is busy. Trying port ${PORT + 1}`);
+                // Try the next port
+                app.listen(PORT + 1, () => {
+                    console.log(`Server running on http://localhost:${PORT + 1}`);
+                });
+            } else {
+                console.error('Server error:', err);
+            }
         });
     } catch (error) {
         console.error('Failed to start server:', {
@@ -131,6 +142,15 @@ const startServer = async () => {
         process.exit(1);
     }
 };
+
+// Add graceful shutdown
+process.on('SIGTERM', () => {
+    console.info('SIGTERM signal received.');
+    server.close(() => {
+        console.log('Server closed.');
+        process.exit(0);
+    });
+});
 
 startServer();
 

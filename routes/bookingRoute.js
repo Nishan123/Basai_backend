@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { bookNow, cancelBooking, getAllBookings } = require('../controllers/bookingController');
+const { bookNow, cancelBooking, getAllBookings, updateBookingStatus } = require('../controllers/bookingController');
 const Booking = require('../model/Booking');
 
 // Test endpoint
@@ -40,6 +40,18 @@ router.get('/user-bookings/:userId', async (req, res) => {
 });
 
 // Replace the previous all-bookings route with this
-router.get('/all-bookings', getAllBookings);
+router.get('/all', getAllBookings);
+
+// Add new route for updating booking status with explicit CORS headers
+router.patch('/status/:bookingId', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+}, updateBookingStatus);
 
 module.exports = router;

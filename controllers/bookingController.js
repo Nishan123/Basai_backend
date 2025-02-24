@@ -126,4 +126,47 @@ const getAllBookings = async (req, res) => {
     }
 };
 
-module.exports = { bookNow, cancelBooking, getAllBookings };
+const updateBookingStatus = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const { status } = req.body;
+
+        if (!['confirmed', 'cancelled'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid status. Must be either "confirmed" or "cancelled"'
+            });
+        }
+
+        const booking = await Booking.findByPk(bookingId);
+        
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found'
+            });
+        }
+
+        await booking.update({ status });
+
+        res.status(200).json({
+            success: true,
+            message: `Booking status updated to ${status}`,
+            booking
+        });
+    } catch (error) {
+        console.error('Error updating booking status:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update booking status',
+            error: error.message
+        });
+    }
+};
+
+module.exports = { 
+    bookNow, 
+    cancelBooking, 
+    getAllBookings, 
+    updateBookingStatus 
+};

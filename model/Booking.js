@@ -49,7 +49,8 @@ const Booking = sequelize.define("Bookings", {
   },
   status: {
     type: DataTypes.ENUM('confirmed', 'cancelled'),
-    defaultValue: 'confirmed'
+    defaultValue: 'confirmed',
+    allowNull: false
   }
 });
 
